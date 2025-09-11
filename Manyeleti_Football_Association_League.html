@@ -129,6 +129,8 @@
         let tableBody = document.querySelector("#leagueTable tbody");
         tableBody.innerHTML = "";
 
+        teams.sort((a, b) => a.name.localeCompare(b.name));
+
         teams.sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference);
 
         teams.forEach(team => {
@@ -154,4 +156,5 @@
 
 </body>
 </html>
+
 
