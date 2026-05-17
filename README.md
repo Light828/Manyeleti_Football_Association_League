@@ -13,6 +13,10 @@ Manage fixtures and results in real-time
 Provide a simple interface for league updates
 
 This project is ideal for local leagues, school competitions, or community tournaments.
+🌐 Live Demo
+👉 View the live site here:
+
+https://light828.github.io/Manyeleti_Football_Association_League/
 
 🚀 Features
 
