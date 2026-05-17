@@ -1,19 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manyeleti Football Association</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid black; padding: 10px; text-align: center; }
-        th { background-color: #f4a261; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manyeleti Football Association</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f9f9f9;
+    }
+
+    h1, h2 {
+        text-align: center;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background: white;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f4a261;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    button {
+        padding: 6px 10px;
+        border: none;
+        background-color: #2a9d8f;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    button:hover {
+        background-color: #21867a;
+    }
+
+    .reset {
+        background-color: #e63946;
+        display: block;
+        margin: 10px auto;
+    }
+</style>
 </head>
+
 <body>
 
-<h1>Manyeleti Football Association League Table</h1>
+<h1>⚽ Manyeleti Football Association League</h1>
+
+<button class="reset" onclick="resetLeague()">Reset League</button>
+
+<h2>League Table</h2>
 <table id="leagueTable">
     <thead>
         <tr>
@@ -23,9 +75,9 @@
             <th>Draw</th>
             <th>Lost</th>
             <th>Points</th>
-            <th>Goals For</th>
-            <th>Goals Against</th>
-            <th>Goal Difference</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -35,106 +87,147 @@
 <table id="fixturesTable">
     <thead>
         <tr>
-            <th>Home Team</th>
-            <th>Away Team</th>
+            <th>Home</th>
+            <th>Away</th>
             <th>Home Score</th>
             <th>Away Score</th>
-            <th>Submit Result</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody></tbody>
 </table>
 
 <script>
-    let teams = [
-        "Gunga Sport", "Young Stars", "Napolo FC", "Majaha YA Vuva", "Tirhela FC", "Mondzweni Sports", "KD Stars", "Ocean Stars", 
-        "Small Chiefs", "Appollo Rangers FC", "Xirhoberhobe", "Hubs", "Black Birds", "Shorty Youmg Star", "Athol Liver", "Skom Boys", 
-        "Flying Birds", "Share Academy", "Stone Breakers", "Happy Boys"
-    ].map(name => ({
-        name, played: 0, won: 0, draw: 0, lost: 0, points: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0
+let initialTeams = [
+    "Gunga Sport", "Young Stars", "Napolo FC", "Majaha YA Vuva", "Tirhela FC",
+    "Mondzweni Sports", "KD Stars", "Ocean Stars", "Small Chiefs",
+    "Appollo Rangers FC", "Xirhoberhobe", "Hubs", "Black Birds",
+    "Shorty Young Star", "Athol Liver", "Skom Boys",
+    "Flying Birds", "Share Academy", "Stone Breakers", "Happy Boys"
+];
+
+let teams = [];
+let fixtures = [];
+
+// Initialize teams
+function initTeams() {
+    teams = initialTeams.map(name => ({
+        name,
+        played: 0,
+        won: 0,
+        draw: 0,
+        lost: 0,
+        points: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0
     }));
+}
 
-    let fixtures = [];
+// Generate fixtures
+function generateFixtures() {
+    fixtures = [];
 
-    function generateFixtures() {
-        teams.forEach((homeTeam, i) => {
-            teams.forEach((awayTeam, j) => {
-                if (i !== j) {
-                    fixtures.push({ home: homeTeam.name, away: awayTeam.name });
-                }
-            });
+    teams.forEach((home, i) => {
+        teams.forEach((away, j) => {
+            if (i !== j) {
+                fixtures.push({ home: home.name, away: away.name });
+            }
         });
+    });
 
-        shuffleFixtures(); // Randomize the fixture order
+    shuffleFixtures();
+}
+
+// Shuffle fixtures
+function shuffleFixtures() {
+    for (let i = fixtures.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [fixtures[i], fixtures[j]] = [fixtures[j], fixtures[i]];
+    }
+}
+
+// Render fixtures table
+function renderFixtures() {
+    let tbody = document.querySelector("#fixturesTable tbody");
+    tbody.innerHTML = "";
+
+    fixtures.forEach(match => {
+        let row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${match.home}</td>
+            <td>${match.away}</td>
+            <td><input type="number" class="homeScore" min="0"></td>
+            <td><input type="number" class="awayScore" min="0"></td>
+            <td><button>Submit</button></td>
+        `;
+
+        let btn = row.querySelector("button");
+        btn.addEventListener("click", () => submitResult(match.home, match.away, row));
+
+        tbody.appendChild(row);
+    });
+}
+
+// Submit match result
+function submitResult(homeName, awayName, row) {
+    let homeScore = parseInt(row.querySelector(".homeScore").value);
+    let awayScore = parseInt(row.querySelector(".awayScore").value);
+
+    if (isNaN(homeScore) || isNaN(awayScore)) {
+        alert("Enter valid scores!");
+        return;
     }
 
-    function shuffleFixtures() {
-        for (let i = fixtures.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [fixtures[i], fixtures[j]] = [fixtures[j], fixtures[i]];
-        }
+    let home = teams.find(t => t.name === homeName);
+    let away = teams.find(t => t.name === awayName);
+
+    home.played++;
+    away.played++;
+
+    home.goalsFor += homeScore;
+    away.goalsFor += awayScore;
+
+    home.goalsAgainst += awayScore;
+    away.goalsAgainst += homeScore;
+
+    home.goalDifference = home.goalsFor - home.goalsAgainst;
+    away.goalDifference = away.goalsFor - away.goalsAgainst;
+
+    if (homeScore > awayScore) {
+        home.won++;
+        home.points += 3;
+        away.lost++;
+    } else if (homeScore < awayScore) {
+        away.won++;
+        away.points += 3;
+        home.lost++;
+    } else {
+        home.draw++;
+        away.draw++;
+        home.points++;
+        away.points++;
     }
 
-    function renderFixtures() {
-        let fixturesBody = document.querySelector("#fixturesTable tbody");
-        fixturesBody.innerHTML = "";
+    row.style.backgroundColor = "#d4edda";
+    renderTable();
+}
 
-        fixtures.forEach(match => {
-            let row = `<tr>
-                <td>${match.home}</td>
-                <td>${match.away}</td>
-                <td><input type="number" class="score-home"></td>
-                <td><input type="number" class="score-away"></td>
-                <td><button onclick="submitResult('${match.home}', '${match.away}', this)">Submit</button></td>
-            </tr>`;
-            fixturesBody.innerHTML += row;
-        });
-    }
+// Render league table
+function renderTable() {
+    let tbody = document.querySelector("#leagueTable tbody");
+    tbody.innerHTML = "";
 
-    function submitResult(homeTeam, awayTeam, button) {
-        let row = button.parentElement.parentElement;
-        let homeScore = parseInt(row.querySelector(".score-home").value);
-        let awayScore = parseInt(row.querySelector(".score-away").value);
+    teams.sort((a, b) =>
+        b.points - a.points ||
+        b.goalDifference - a.goalDifference ||
+        b.goalsFor - a.goalsFor
+    );
 
-        let home = teams.find(team => team.name === homeTeam);
-        let away = teams.find(team => team.name === awayTeam);
-
-        home.goalsFor += homeScore;
-        away.goalsFor += awayScore;
-        home.goalsAgainst += awayScore;
-        away.goalsAgainst += homeScore;
-
-        home.goalDifference = home.goalsFor - home.goalsAgainst;
-        away.goalDifference = away.goalsFor - away.goalsAgainst;
-
-        home.played++;
-        away.played++;
-
-        if (homeScore > awayScore) {
-            home.won++; home.points += 3;
-            away.lost++;
-        } else if (homeScore < awayScore) {
-            away.won++; away.points += 3;
-            home.lost++;
-        } else {
-            home.draw++; away.draw++;
-            home.points += 1;
-            away.points += 1;
-        }
-
-        renderTable();
-    }
-
-    function renderTable() {
-        let tableBody = document.querySelector("#leagueTable tbody");
-        tableBody.innerHTML = "";
-
-        teams.sort((a, b) => a.name.localeCompare(b.name));
-
-        teams.sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference);
-
-        teams.forEach(team => {
-            let row = `<tr>
+    teams.forEach(team => {
+        tbody.innerHTML += `
+            <tr>
                 <td>${team.name}</td>
                 <td>${team.played}</td>
                 <td>${team.won}</td>
@@ -144,17 +237,27 @@
                 <td>${team.goalsFor}</td>
                 <td>${team.goalsAgainst}</td>
                 <td>${team.goalDifference}</td>
-            </tr>`;
-            tableBody.innerHTML += row;
-        });
-    }
+            </tr>
+        `;
+    });
+}
 
-    generateFixtures();
-    renderFixtures();
-    renderTable();
+// Reset league
+function resetLeague() {
+    if (confirm("Reset all results?")) {
+        initTeams();
+        generateFixtures();
+        renderFixtures();
+        renderTable();
+    }
+}
+
+// Start app
+initTeams();
+generateFixtures();
+renderFixtures();
+renderTable();
 </script>
 
 </body>
 </html>
-
-
